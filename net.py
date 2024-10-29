@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+
 class Conv_Block(nn.Module):
     def __init__(self,in_channel,out_channel):
         super(Conv_Block, self).__init__()
@@ -42,7 +43,7 @@ class UpSample(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self,num_classes):
+    def __init__(self):
         super(UNet, self).__init__()
         self.c1=Conv_Block(3,64)
         self.d1=DownSample(64)
@@ -61,7 +62,8 @@ class UNet(nn.Module):
         self.c8 = Conv_Block(256, 128)
         self.u4 = UpSample(128)
         self.c9 = Conv_Block(128, 64)
-        self.out=nn.Conv2d(64,num_classes,3,1,1)
+        self.out=nn.Conv2d(64,3,3,1,1)
+        self.Th = nn.Sigmoid()
 
     def forward(self,x):
         R1=self.c1(x)
@@ -74,9 +76,9 @@ class UNet(nn.Module):
         O3 = self.c8(self.u3(O2, R2))
         O4 = self.c9(self.u4(O3, R1))
 
-        return self.out(O4)
+        return self.Th(self.out(O4))
 
 if __name__ == '__main__':
-    x=torch.randn(2,3,256,256)
+    x=torch.randn(10,3,256,256)
     net=UNet()
     print(net(x).shape)
